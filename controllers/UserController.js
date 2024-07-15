@@ -6,10 +6,77 @@ import AuthMiddleware from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-router.post('/create', async (req, res) => {
-    const response = await UserService.createUser(req);
+const handleResponse = (res, response) => {
     res.status(response.code).json(response.message);
-});
+};
+
+const createUser = async (req, res, next) => {
+    try {
+        const response = await UserService.createUser(req);
+        handleResponse(res, response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getAllUsers = async (req, res, next) => {
+    try {
+        const response = await UserService.getAllUsers(req);
+        handleResponse(res, response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const bulkCreateUsers = async (req, res, next) => {
+    try {
+        const response = await UserService.bulkCreateUsers(req.body.users);
+        handleResponse(res, response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const findUsers = async (req, res, next) => {
+    try {
+        const response = await UserService.findUsers(req.query);
+        handleResponse(res, response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getUserById = async (req, res, next) => {
+    try {
+        const response = await UserService.getUserById(req.params.id);
+        handleResponse(res, response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateUser = async (req, res, next) => {
+    try {
+        const response = await UserService.updateUser(req);
+        handleResponse(res, response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const deleteUser = async (req, res, next) => {
+    try {
+        const response = await UserService.deleteUser(req.params.id);
+        handleResponse(res, response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+router.post('/create', createUser);
+router.get('/getAllUsers', getAllUsers);
+router.post('/bulkCreate', bulkCreateUsers);
+router.get('/findUsers', findUsers);
 
 router.get(
     '/:id',
@@ -19,32 +86,29 @@ router.get(
         AuthMiddleware.validateToken,
         UserMiddleware.hasPermissions
     ],
-    async (req, res) => {
-        const response = await UserService.getUserById(req.params.id);
-        res.status(response.code).json(response.message);
-    });
+    getUserById
+);
 
-router.put('/:id', [
-        NumberMiddleware.isNumber,
-        UserMiddleware.isValidUserById,
-        AuthMiddleware.validateToken,
-        UserMiddleware.hasPermissions,
-    ],
-    async(req, res) => {
-        const response = await UserService.updateUser(req);
-        res.status(response.code).json(response.message);
-    });
-
-router.delete('/:id',
+router.put(
+    '/:id',
     [
         NumberMiddleware.isNumber,
         UserMiddleware.isValidUserById,
         AuthMiddleware.validateToken,
-        UserMiddleware.hasPermissions,
+        UserMiddleware.hasPermissions
     ],
-    async (req, res) => {
-       const response = await UserService.deleteUser(req.params.id);
-       res.status(response.code).json(response.message);
-    });
+    updateUser
+);
+
+router.delete(
+    '/:id',
+    [
+        NumberMiddleware.isNumber,
+        UserMiddleware.isValidUserById,
+        AuthMiddleware.validateToken,
+        UserMiddleware.hasPermissions
+    ],
+    deleteUser
+);
 
 export default router;
